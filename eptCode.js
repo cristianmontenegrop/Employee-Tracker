@@ -1,25 +1,41 @@
-var mysql = require("mysql");
+var CRUD = require("./lib/CRUD");
+// const Department = require("./lib/Department");
+// const Employee = require("./lib/Employee");
+// const Role = require("./lib/Role");
+// require("dotenv").config();
+// var mysql = require("mysql");
 var inquirer = require("inquirer");
-var cTable = require("console.table");
+var table = require("console.table");
 
-var connection = mysql.createConnection({
-    host: "localhost",
+// var pool = mysql.createPool({
+//     host: "localhost",
+//     port: 3306,
+//     user: "root",
+//     password: process.env.MYSQL_PASSWORD,
+//     database: "employee_trackerDB"
+// });
 
-    // Your port; if not 3306
-    port: 3306,
+// var connection = mysql.createConnection({
 
-    // Your username
-    user: "root",
+//     host: "localhost",
+//     port: 3306,
+//     user: "root",
+//     password: process.env.MYSQL_PASSWORD,
+//     database: "employee_trackerDB"
+// });
 
-    // Your password
-    password: "@Abund4nc1a",
-    database: "employee_trackerDB"
-});
+// connection.connect(function (err) {
+//     if (err) throw err;
+//     runInquirer();
 
-connection.connect(function (err) {
-    if (err) throw err;
-    runInquirer();
-});
+// });
+
+
+// getConnection: (callback) => {
+//     return pool.getConnection(callback);
+// }
+
+
 
 function runInquirer() {
     inquirer
@@ -31,7 +47,7 @@ function runInquirer() {
                 "Add Department",
                 "Add Role",
                 "Add Employee",
-                // "Remove Department",
+                "Remove Department",
                 // "Remove Role",
                 // "Remove Employee",
                 "Update Employee Role",
@@ -58,9 +74,9 @@ function runInquirer() {
                     addEmployee();
                     break;
 
-                    // case "Remove Department":
-                    //     removeDepartment();
-                    //     break;
+                case "Remove Department":
+                    removeDepartment();
+                    break;
 
                     // case "Remove Role":
                     //     removeRole();
@@ -105,7 +121,6 @@ function runInquirer() {
 }
 
 
-
 addDepartment = () => {
 
     inquirer.prompt([{
@@ -113,23 +128,109 @@ addDepartment = () => {
         type: "input",
         message: "What is the department name you wish to add?"
     }]).then(function (answer) {
-        var query = `INSERT INTO department (name) VALUES (${answer});`;
-        connection.query(query, function (err, res) {
-            console.log("Department: " + res + "succesfully added");
+        var table = "department";
+        var columns = "department_name";
+
+        new CRUD(table, columns, answer.department, function (res) {
+            console.table(res);
             runInquirer();
-        });
+        }).create();
     });
 };
 
+addRole = () => {
+
+    new CRUD("department", "*", null, function (resp) {
+
+        const departmentChoices = resp.map(({
+            department_id,
+            department_name
+        }) => ({
+            name: department_name,
+            value: department_id
+        }));
+        console.log(departmentChoices)
+        inquirer.prompt([{
+            name: "role",
+            type: "input",
+            message: "What is the role you wish to add?"
+        }, {
+            name: "salary",
+            type: 'number',
+            message: "what is the salary this role holds?",
+            // validate: async (input) => {
+            //     if (input !== NaN) {
+            //         return ("Input must be a valid number");
+            //     }
+            //     return true;
+            // }
+        }, {
+            name: "department_id",
+            type: "list",
+            message: "Which of this department does the role belong to?",
+            choices: departmentChoices
+
+        }]).then(function ({
+            role,
+            salary,
+            department_id
+        }) {
+            var table = "role";
+            var columns = ["title", "salary", "department_id"];
+            var data = [role, salary, department_id]
+
+            new CRUD(table, columns, data, function (res) {
+                console.table(res);
+                runInquirer();
+            }).create();
+        })
+
+    }).read();
+};
+addEmployee = () => {
+
+    inquirer.prompt([{
+        name: "employee",
+        type: "input",
+        message: "What is the Employee Name you wish to add?"
+    }]).then(function (answer) {
+        var table = "role";
+        var columns = "title";
+
+        new CRUD(table, columns, answer.role, function (res) {
+            console.table(res);
+            runInquirer();
+        }).create();
+    });
+};
+
+viewAllDepartments = () => {
+    new CRUD("department", "*", null, function (res) {
+        console.log(res);
+        console.table(res);
+        runInquirer();
+
+    }).read();
+};
 
 
+removeDepartment = () => {
+    new Department().readDepartment().then(function (err, res) {
+        console.log(res);
 
+        // inquirer.prompt([{
+        //     name: "department",
+        //     type: "list",
+        //     message: "What is the department name you wish to delete?",
+        //     choices: res.map(function (list) {
+        //         return list
+        //     })
+        // }]).then(function (answer) {
 
-
-
-
-
-
+        //     new Department(answer.department, ).deleteDepartment().then(runInquirer());
+        // });
+    })
+};
 
 function artistSearch() {
     inquirer
@@ -267,3 +368,5 @@ function songAndAlbumSearch() {
             });
         });
 }
+module.exports.runInquirer = runInquirer;
+// module.exports = runInquirer;
