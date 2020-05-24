@@ -1,4 +1,7 @@
-var CRUD = require("./lib/CRUD");
+var {
+    CRUD,
+    connection
+} = require("./lib/CRUD");
 // const Department = require("./lib/Department");
 // const Employee = require("./lib/Employee");
 // const Role = require("./lib/Role");
@@ -132,8 +135,12 @@ addDepartment = () => {
         var columns = "department_name";
 
         new CRUD(table, columns, answer.department, function (res) {
-            console.table(res);
-            runInquirer();
+            if (res.serverStatus === 2) {
+                console.log("Department " + answer.department + " Was added with the ID: " + res.insertId);
+            };
+            setTimeout((function () {
+                runInquirer();
+            }), 1500);
         }).create();
     });
 };
@@ -149,7 +156,7 @@ addRole = () => {
             name: department_name,
             value: department_id
         }));
-        console.log(departmentChoices)
+        // console.log(departmentChoices)
         inquirer.prompt([{
             name: "role",
             type: "input",
@@ -158,12 +165,12 @@ addRole = () => {
             name: "salary",
             type: 'number',
             message: "what is the salary this role holds?",
-            // validate: async (input) => {
-            //     if (input !== NaN) {
-            //         return ("Input must be a valid number");
-            //     }
-            //     return true;
-            // }
+            validate: async (input) => {
+                if (isNaN(input)) {
+                    return ("Input must be a valid number");
+                }
+                return true;
+            }
         }, {
             name: "department_id",
             type: "list",
@@ -180,8 +187,12 @@ addRole = () => {
             var data = [role, salary, department_id]
 
             new CRUD(table, columns, data, function (res) {
-                console.table(res);
-                runInquirer();
+                if (res.serverStatus === 2) {
+                    console.log("Role " + role + " Was added with the ID: " + res.insertId);
+                };
+                setTimeout((function () {
+                    runInquirer();
+                }), 1500);
             }).create();
         })
 
@@ -190,47 +201,109 @@ addRole = () => {
 addEmployee = () => {
 
     inquirer.prompt([{
-        name: "employee",
+        name: "first_name",
         type: "input",
-        message: "What is the Employee Name you wish to add?"
+        message: "What is the Employee's First Name?"
+    }, {
+        name: "last_name",
+        type: "input",
+        message: "What is the Employee's Last Name?"
+    }, {
+
+
     }]).then(function (answer) {
         var table = "role";
         var columns = "title";
 
         new CRUD(table, columns, answer.role, function (res) {
-            console.table(res);
-            runInquirer();
+            if (res.serverStatus === 2) {
+                console.table(answer.role + " Was added with the ID: " + res.insertId);
+            }
+            setTimeout((function () {
+                runInquirer();
+            }), 1500);
         }).create();
     });
 };
 
 viewAllDepartments = () => {
     new CRUD("department", "*", null, function (res) {
-        console.log(res);
         console.table(res);
-        runInquirer();
+        setTimeout((function () {
+            runInquirer();
+        }), 1500);
+    }).read();
+};
 
+viewAllRoles = () => {
+    new CRUD("role", "*", null, function (res) {
+        console.table(res);
+        setTimeout((function () {
+            runInquirer();
+        }), 1500);
+    }).read();
+};
+
+viewAllEmployees = () => {
+    new CRUD("employee", "*", null, function (res) {
+        console.table(res);
+        setTimeout((function () {
+            runInquirer();
+        }), 1500);
+    }).read();
+};
+removeDepartment = () => {
+    new CRUD("department", "*", null, function (resp) {
+
+        const departmentChoices = resp.map(({
+            department_id,
+            department_name
+        }) => ({
+            name: department_name,
+            value: department_id
+        }));
+        // console.log(departmentChoices)
+        inquirer.prompt([{
+            name: "department_id",
+            type: "list",
+            message: "Which of this departments would you like to remove?",
+            choices: departmentChoices
+
+        }]).then(function ({
+            department_id
+        }) {
+            var table = "department";
+            var columns = "department_id";
+            var data = department_id;
+
+            new CRUD(table, columns, data, function (res) {
+                if (res.serverStatus === 2) {
+                    var message = null;
+                    departmentChoices.forEach(element => {
+                        if (element.value === data) {
+                            message = element.name;
+                        }
+                    });
+                    console.table("Department " + message + " Was removed succesfully");
+                }
+                setTimeout((function () {
+                    runInquirer();
+                }), 1500);
+            }).delete();
+        })
     }).read();
 };
 
 
-removeDepartment = () => {
-    new Department().readDepartment().then(function (err, res) {
-        console.log(res);
 
-        // inquirer.prompt([{
-        //     name: "department",
-        //     type: "list",
-        //     message: "What is the department name you wish to delete?",
-        //     choices: res.map(function (list) {
-        //         return list
-        //     })
-        // }]).then(function (answer) {
 
-        //     new Department(answer.department, ).deleteDepartment().then(runInquirer());
-        // });
-    })
-};
+
+
+
+
+
+
+
 
 function artistSearch() {
     inquirer
