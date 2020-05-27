@@ -25,7 +25,7 @@ function runInquirer() {
                 "Add Employee",
                 "Remove Department",
                 // "Remove Role",
-                // "Remove Employee",
+                "Remove Employee",
                 "Update Employee Role",
                 // "Update Employee Manager",
                 "View All Departments",
@@ -218,12 +218,12 @@ addEmployee = async () => {
         var createEmployee = await new CRUD(table, columns, data).create();
 
         if (is_manager === true) {
-            console.log(createEmployee)
+            // console.log(createEmployee)
             var sql = `UPDATE employee SET manager_id = ${createEmployee.insertId} WHERE
                 employee_id = ${createEmployee.insertId}`;
 
             var manager_id_insertion = await new CRUD(table, null, sql, true).update();
-            console.log(manager_id_insertion);
+            // console.log(manager_id_insertion);
         }
 
         if (createEmployee.serverStatus === 2) {
@@ -237,7 +237,6 @@ addEmployee = async () => {
     });
 };
 
-
 viewAllDepartments = async () => {
     var res = await new CRUD("department", "*", null).read();
     console.table(res);
@@ -246,7 +245,6 @@ viewAllDepartments = async () => {
         runInquirer();
     }), 1000);
 };
-
 
 viewAllRoles = async () => {
     var res = await new CRUD("role", "*", null).read();
@@ -315,51 +313,67 @@ removeDepartment = async () => {
 };
 
 removeEmployee = async () => {
-    var res = await new CRUD("employee", "*", null).read();
-
-    const employeeChoices = res.map(({
-        employee_id,
-        first_name,
-        last_name,
-
-    }) => ({
-        name: first_name + " " + last_name,
-        value: employee_id
-    }));
-    departmentChoices.push({
-        name: "Go back",
-        value: -1
-    });
+    var search = [];
     inquirer.prompt([{
-        name: "employee_id",
-        type: "list",
-        message: "Which of this Employees would you like to remove?",
-        choices: employeeChoices
+        name: "first_name",
+        type: "input",
+        message: "What is the employee's first name?"
+    }, {
+        name: "last_name",
+        type: "input",
+        message: "What is the employee's last name?"
+    }]).then(async ({
+        first_name,
+        last_name
+    }) => {
+        var sql = `SELECT employee.employee_id, employee.first_name, employee.last_name, role.title, department.department_name FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id) WHERE (first_name, last_name) = ("${first_name}", "${last_name}");`
+        var res = await new CRUD(null, null, sql, true).read();
+        // console.log(res);
+        search = res.map(({
+            employee_id,
+            first_name,
+            last_name,
+            title,
+            department_name
+        }) => ({
+            name: `First name: ${first_name}  Last name: ${last_name}  Title: ${title}  Department: ${department_name}  Employee ID: ${employee_id}`,
+            value: employee_id
+        }));
+        search.push({
+            name: "Go back",
+            value: -1
+        });
 
-    }]).then(async function ({
-        employee_id
-    }) {
-        var table = "employee";
-        var columns = "employee_id";
-        var data = employee_id;
-        if (employee_id === -1) {
-            return runInquirer();
-        };
+        inquirer.prompt([{
+            name: "employee_id",
+            type: "list",
+            message: "Which of this Employees would you like to remove?",
+            choices: search
 
-        var res = await new CRUD(table, columns, data).delete();
-        if (res.serverStatus === 2) {
-            var message = null;
-            employeeChoices.forEach(element => {
-                if (element.value === data) {
-                    message = element.name;
-                }
-            });
-            console.table("Employee " + message + " Was removed succesfully");
-        }
-        setTimeout((function () {
-            runInquirer();
-        }), 1000);
+        }]).then(async function ({
+            employee_id
+        }) {
+            var table = "employee";
+            var columns = "employee_id";
+            var data = employee_id;
+            if (employee_id === -1) {
+                return runInquirer();
+            };
 
+            var res = await new CRUD(table, columns, data).delete();
+            if (res.serverStatus === 2) {
+                var message = null;
+                search.forEach(element => {
+                    if (element.value === data) {
+                        message = element.name;
+                    }
+                });
+                console.table("Employee " + message + " Was removed succesfully");
+            }
+            setTimeout((function () {
+                runInquirer();
+            }), 1000);
+
+        })
     })
-
 };
