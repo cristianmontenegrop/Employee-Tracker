@@ -24,7 +24,7 @@ function runInquirer() {
                 "Add Role",
                 "Add Employee",
                 "Remove Department",
-                // "Remove Role",
+                "Remove Role",
                 "Remove Employee",
                 "Update Employee Role",
                 // "Update Employee Manager",
@@ -54,9 +54,9 @@ function runInquirer() {
                     removeDepartment();
                     break;
 
-                    // case "Remove Role":
-                    //     removeRole();
-                    //     break;
+                case "Remove Role":
+                    removeRole();
+                    break;
 
                 case "Remove Employee":
                     removeEmployee();
@@ -179,6 +179,19 @@ addEmployee = async () => {
 
     var roleRes = await new CRUD("role", "*", null).read();
 
+    var sql = `SELECT employee.employee_id, employee.first_name, employee.last_name, role.title, department.department_name FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id) WHERE employee.manager_id IS NULL;`
+    var managers = await new CRUD(null, null, sql, true).read();
+
+    var managersChoices = managers.map(({
+        employee_id,
+        first_name,
+        last_name,
+        title,
+        department_name
+    }) => ({
+        name: `Name: ${first_name} ${last_name}  Title: ${title}  Department: ${department_name}`,
+        value: employee_id
+    }));
     var roleChoices = roleRes.map(({
         role_id,
         title
@@ -205,26 +218,32 @@ addEmployee = async () => {
         type: "confirm",
         message: "Is this Employee a Manager?"
 
-
     }]).then(async function ({
         first_name,
         last_name,
         role_id,
         is_manager
     }) {
+
         var table = "employee";
         var columns = ["first_name", "last_name", "role_id"];
         var data = [first_name, last_name, role_id];
+
+        if (is_manager === false) {
+            await inquirer.prompt({
+                name: "who_is_manager",
+                type: "list",
+                message: "Who is your manager?",
+                choices: managersChoices
+            }).then(async function ({
+                who_is_manager
+            }) {
+                columns = ["first_name", "last_name", "role_id", "manager_id"];
+                data = [first_name, last_name, role_id, who_is_manager];
+            })
+        };
+
         var createEmployee = await new CRUD(table, columns, data).create();
-
-        if (is_manager === true) {
-            // console.log(createEmployee)
-            var sql = `UPDATE employee SET manager_id = ${createEmployee.insertId} WHERE
-                employee_id = ${createEmployee.insertId}`;
-
-            var manager_id_insertion = await new CRUD(table, null, sql, true).update();
-            // console.log(manager_id_insertion);
-        }
 
         if (createEmployee.serverStatus === 2) {
             console.table(`Employee ${first_name} ${last_name} Was added with the ID: ${createEmployee.insertId}`);
@@ -233,8 +252,7 @@ addEmployee = async () => {
         setTimeout((function () {
             runInquirer();
         }), 1000);
-
-    });
+    })
 };
 
 viewAllDepartments = async () => {
@@ -256,9 +274,9 @@ viewAllRoles = async () => {
 };
 
 viewAllEmployees = async () => {
-    var res = await new CRUD("employee", "*", null).read();
+    var sql = `SELECT employee.employee_id, employee.first_name, employee.last_name, role.title, department.department_name, role.salary FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id);`
+    var res = await new CRUD(null, null, sql, true).read();
     console.table(res);
-
     setTimeout((function () {
         runInquirer();
     }), 1000);
@@ -377,3 +395,52 @@ removeEmployee = async () => {
         })
     })
 };
+
+removeRole = async () => {
+    var res = await new CRUD("role", "*", null).read();
+
+    const roleChoices = res.map(({
+        role_id,
+        title
+    }) => ({
+        name: title,
+        value: role_id
+    }));
+    roleChoices.push({
+        name: "Go back",
+        value: -1
+    });
+    inquirer.prompt([{
+        name: "role_id",
+        type: "list",
+        message: "Which of this roles would you like to remove?",
+        choices: roleChoices
+
+    }]).then(async function ({
+        role_id
+    }) {
+        var table = "role";
+        var columns = "role_id";
+        var data = role_id;
+        if (role_id === -1) {
+            return runInquirer();
+        };
+
+        var res = await new CRUD(table, columns, data).delete();
+        if (res.serverStatus === 2) {
+            var message = null;
+            roleChoices.forEach(element => {
+                if (element.value === data) {
+                    message = element.name;
+                }
+            });
+            console.table("Role " + message + " Was removed succesfully");
+        }
+        setTimeout((function () {
+            runInquirer();
+        }), 1000);
+
+    })
+
+
+}
