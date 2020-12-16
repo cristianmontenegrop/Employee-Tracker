@@ -1,57 +1,46 @@
-    
+
+                
 # Employee Tracker
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/cristianmontenegrop/H12-Employee-Tracker)
-
-## Description
-
-This tool is known as Content Management System, it is a solution for managing a company's employees, it uses a database to store the information. Simply add your departments, employee roles, employees, salaries and this tool will take care of keeping your data organized and accessible. 
-
-
-![](H12-GIF.gif)
-
-
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/cristianmontenegrop/Employee-Tracker)
+[![GitHub license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/cristianmontenegrop/H12-Employee-Tracker)
 
 ## Table of Contents 
 
+* [Demonstration](#Demonstration)
+* [Description](#Description)
 * [Installation](#installation)
-
 * [Usage](#usage)
+* [Questions](#questions)
+* [Contributing](#contributing)
+
 
 * [License](#license)
 
-* [Contributing](#contributing)
+## Demonstration
 
-* [Questions](#questions)
+[![Foo](employee-tracker.gif)](https://github.com/cristianmontenegrop/H12-Employee-Tracker) 
 
-## Installation
+## Description
 
-To install necessary dependencies, run the following command:
+## Technologies
 
+<ul><li>This tool is known as Content Management System</li><li> it is a solution for managing a company's employees</li><li> it uses a database to store the information. Simply add your departments</li><li> employee roles</li><li> employees</li><li> salaries and this tool will take care of keeping your data organized and accessible. </li></ul>
+              
+## Installation 
+ To install necessary dependencies, run the following command: ' To install necessary dependencies, run the following command: ' To install necessary dependencies, run the following command: 'To install dependencies type 'npm i' in terminal' '    '                   
 
-                        
-                        'npm i'
-                    
-                        
+## Usage 
+Once you have the application from [this github repository](https://github.com/cristianmontenegrop/H12-Employee-Tracker), rename sample.env to .env, then insert the data from your Database into .env file. Copy the Schema.sql file content inside the data folder into your database. Access CMS.js through your terminal window by typing 'npm start' and you'll be presented with a main menu with all the features this application has.
 
-## Usage
+## Contributing 
+If you wish to contribute in any way, please slack me here: https://join.slack.com/t/newworkspace-dfn1975/shared_invite/zt-k727lmi9-y4XTpsjANSSib4DbZaF~pA   
 
-Once you have the application from [this git
-hub repository](https://github.com/cristianmontenegrop/H12-Employee-Tracker), rename sample.env to .env, then insert the data from your Database into .env file. Copy the Schema.sql file content inside the data folder into your database. Access CMS.js through your terminal window and you'll be presented with a main menu with all the features this application has.
+## Questions 
+ If you have any questions slack me here: https://join.slack.com/t/newworkspace-dfn1975/shared_invite/zt-k727lmi9-y4XTpsjANSSib4DbZaF~pA
 
 ## License
 
 This project is licensed under the MIT license.
-  
-## Contributing
-
-If you wish to cotribute feel free to r
-each out through Slack, my ID: UTW6F607J.    
-
-## Questions
-
-For further assistance feel free to [Email 
-me](mailto:cristian.montenegro.p@gmail.com)
-
 
 
                     
