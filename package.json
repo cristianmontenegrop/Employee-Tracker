@@ -5,8 +5,8 @@
   "main": "employee-tracker-code.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node employee-tracker-code.js",
-    "watch": "nodemon employee-tracker-code.js"
+    "start": "node CMS.js",
+    "watch": "CMS.js"
   },
   "author": "",
   "license": "ISC",
