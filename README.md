@@ -22,6 +22,8 @@
 
 ## Description
 
+This tool is known as Content Management System, it is a solution for managing a company's employees, it uses a database to store the information. Simply add your departments, employee roles, employees, salaries and this tool will take care of keeping your data organized and accessible.
+
 ## Technologies
 
 <ul><li>This tool is known as Content Management System</li><li> it is a solution for managing a company's employees</li><li> it uses a database to store the information. Simply add your departments</li><li> employee roles</li><li> employees</li><li> salaries and this tool will take care of keeping your data organized and accessible. </li></ul>
