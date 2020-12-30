@@ -1,6 +1,5 @@
 const logo = require('asciiart-logo');
 const inquirer = require('inquirer');
-const consoleTable = require('console.table');
 const CRUD = require('./lib/CRUD');
 
 const addDepartment = () => {
@@ -8,18 +7,17 @@ const addDepartment = () => {
     name: 'department',
     type: 'input',
     message: 'What is the department name you wish to add?',
-  }]).then(async (answer) => {
+  }]).then(async ({ department }) => {
     const table = 'department';
     const columns = 'department_name';
-    const res = await new CRUD(table, columns, answer.department).create();
+    const res = await new CRUD(table, columns, department).create();
+
     if (res.serverStatus === 2) {
       const dep = 'Department ';
       const wasAdded = ' Was added with the ID: ';
-      consoleTable(dep + answer.department + wasAdded + res.insertId);
+      console.table(dep + department + wasAdded + res.insertId);
     }
-    setTimeout((() => {
-      runInquirer();
-    }), 1000);
+    setTimeout((() => runInquirer()), 1000);
   });
 };
 
@@ -67,7 +65,7 @@ const addRole = async () => {
     }
     res = await new CRUD(table, columns, data).create();
     if (res.serverStatus === 2) {
-      consoleTable(`Role ${role} Was added with the ID: ${res.insertId}`);
+      console.table(`Role ${role} Was added`);
     }
     setTimeout((() => runInquirer()), 1000);
     return res;
@@ -131,7 +129,7 @@ const addEmployee = async () => {
     const createEmployee = await new CRUD(table, columns, data).create();
 
     if (createEmployee.serverStatus === 2) {
-      consoleTable(`Employee ${firstName} ${lastName} Was added with the ID: ${createEmployee.insertId}`);
+      console.table(`Employee ${firstName} ${lastName} Was added with the ID: ${createEmployee.insertId}`);
     }
     setTimeout((() => runInquirer()), 1000);
   });
@@ -139,20 +137,20 @@ const addEmployee = async () => {
 
 const viewAllDepartments = async () => {
   const resDepartments = await new CRUD('department', '*', null).read();
-  consoleTable(resDepartments);
+  console.table(resDepartments);
   setTimeout((() => runInquirer()), 1000);
 };
 
 const viewAllRoles = async () => {
   const resRoles = await new CRUD('role', '*', null).read();
-  consoleTable(resRoles);
+  console.table(resRoles);
   setTimeout((() => runInquirer()), 1000);
 };
 
 const viewAllEmployees = async () => {
   const sql = 'SELECT employee.employee_id, employee.first_name, employee.last_name, role.title, department.department_name, role.salary FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id);'
   const resAllEmployees = await new CRUD(null, null, sql, true).read();
-  consoleTable(resAllEmployees);
+  console.table(resAllEmployees);
   setTimeout((() => runInquirer()), 1000);
 };
 
@@ -180,7 +178,7 @@ const removeDepartment = async () => {
     const columns = 'department_id';
     const data = departmentId;
     if (departmentId === -1) {
-      consoleTable('There was an error, please try a different result');
+      console.table('There was an error, please try a different result');
       return removeDepartment();
     }
     const resDelete = await new CRUD(table, columns, data).delete();
@@ -191,7 +189,7 @@ const removeDepartment = async () => {
           message = element.name;
         }
       });
-      consoleTable(`Department ${message} Was removed succesfully`);
+      console.table(`Department ${message} Was removed succesfully`);
     }
     setTimeout((() => runInquirer()), 1000);
     return resDelete;
@@ -243,7 +241,7 @@ const removeEmployee = async () => {
       let message;
 
       if (employeeId === -1) {
-        consoleTable('There was an error, please try again or use a different result');
+        console.table('There was an error, please try again or use a different result');
         return removeEmployee();
       }
       const resDelete = await new CRUD(table, columns, data).delete();
@@ -254,7 +252,7 @@ const removeEmployee = async () => {
             message = element.name;
           }
         });
-        consoleTable(`Employee ${message} Was removed succesfully`);
+        console.table(`Employee ${message} Was removed succesfully`);
       }
       setTimeout((() => runInquirer()), 1000);
       return resDelete;
@@ -294,7 +292,7 @@ const removeRole = async () => {
           message = element.name;
         }
       });
-      consoleTable(`Role ${message} Was removed succesfully`);
+      console.table(`Role ${message} Was removed succesfully`);
     }
     setTimeout((() => runInquirer()), 1000);
     return resDelete;
@@ -471,7 +469,7 @@ start();
 //                 message = element.name;
 //             }
 //         });
-//         consoleTable('Employee ' + message + ' Was removed succesfully');
+//         console.table('Employee ' + message + ' Was removed succesfully');
 //     }
 //     setTimeout((function () {
 //         runInquirer();
@@ -549,7 +547,7 @@ start();
 //         var createEmployee = await new CRUD(table, columns, data).create();
 
 //         if (createEmployee.serverStatus === 2) {
-//             consoleTable(`Employee ${first_name} ${last_name} Was updated with the ID: ${createEmployee.insertId}`);
+//             console.table(`Employee ${first_name} ${last_name} Was updated with the ID: ${createEmployee.insertId}`);
 //         }
 
 //         setTimeout((function () {
