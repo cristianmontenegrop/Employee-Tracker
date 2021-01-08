@@ -163,9 +163,56 @@ const viewAllRoles = async () => {
 };
 
 const viewAllEmployees = async () => {
-  const sql = 'SELECT employee.employee_id, employee.first_name, employee.last_name, role.title, department.department_name, role.salary FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id);'
+  const sql = 'SELECT employee.employee_id, employee.first_name, employee.last_name, role.title, department.department_name, role.salary FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id);';
   const resAllEmployees = await new CRUD(null, null, sql, true).read();
   console.table(resAllEmployees);
+  setTimeout((() => runInquirer()), 1000);
+};
+
+const viewAllEmployeesByManager = async () => {
+  const sql = 'SELECT employee.employee_id, employee.first_name, employee.last_name, employee.manager_id, role.title, department.department_name, role.salary FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id);';
+  const resAllEmployees = await new CRUD(null, null, sql, true).read();
+
+  const sqlManagers = 'SELECT employee.employee_id, employee.first_name, employee.last_name, role.title, department.department_name FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id) WHERE employee.manager_id IS NULL;';
+  const managersRes = await new CRUD(null, null, sqlManagers, true).read();
+
+  const managerAdded = resAllEmployees.map((employee) => {
+    let formattedEmployee = Object;
+    formattedEmployee = {
+      name: `${employee.first_name}  ${employee.last_name}`,
+      manager: 'No manager assigned',
+      title: employee.title,
+      department_name: employee.department_name,
+      salary: employee.salary,
+      // manager_id: employee.manager_id,
+    };
+    if (employee.manager_id !== null) {
+      for (let i = 0; i < managersRes.length; i += 1) {
+        console.log('loop ', managersRes[i], 'manager Number: ', managersRes[i].employee_id, 'employee.manager_id: ', employee.manager_id);
+        if (employee.manager_id === managersRes[i].employee_id) {
+          console.log('employee manager Number: ', managersRes[i].employee_id);
+          formattedEmployee.manager = `${managersRes[i].first_name} ${managersRes[i].last_name}`;
+        }
+      }
+    }
+    return formattedEmployee;
+  });
+  managerAdded.sort((a, b) => {
+    const nameA = a.manager.toUpperCase();
+    const nameB = b.manager.toUpperCase();
+
+    if (nameA < nameB) {
+      return -1;
+    }
+    if (nameA > nameB) {
+      return 1;
+    }
+
+    return 0;
+  });
+
+  console.table(resAllEmployees);
+  console.table(managerAdded);
   setTimeout((() => runInquirer()), 1000);
 };
 
@@ -522,7 +569,7 @@ const runInquirer = () => {
         'View All Departments',
         'View All Roles',
         'View All Employees',
-        // 'View All Employees by Manager',
+        'View All Employees by Manager',
         // 'View Total Utilized Budget per Department',
         'I\'m done',
       ],
@@ -572,9 +619,9 @@ const runInquirer = () => {
           viewAllEmployees();
           break;
 
-          // case 'View All Employees by Manager':
-          //     viewAllEmployeesByManager();
-          //     break;
+          case 'View All Employees by Manager':
+              viewAllEmployeesByManager();
+              break;
 
           // case 'View Total Utilized Budget per Department':
           //     viewTotalBudgetPerDepartment();
