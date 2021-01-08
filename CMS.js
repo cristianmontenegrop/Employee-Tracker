@@ -313,6 +313,112 @@ const removeRole = async () => {
     return resDelete;
   });
 };
+const updateEmployeeManager = async () => {
+  let selectedEmployeeId;
+  let employeesManager = {
+    id: Number, firstName: String, lastName: String, department: String, title: String,
+  };
+
+  await inquirer.prompt([{
+    name: 'firstName',
+    type: 'input',
+    message: 'What is the employee\'s first name?',
+  }, {
+    name: 'lastName',
+    type: 'input',
+    message: 'What is the employee\'s last name?',
+  }]).then(async ({ firstName, lastName }) => {
+    const sql = `SELECT employee.employee_id, employee.manager_id, employee.first_name, employee.last_name, role.title, department.department_name FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id) WHERE (first_name, last_name) = ('${firstName}', '${lastName}');`;
+    const resEmployee = await new CRUD(null, null, sql, true).read();
+
+    const employeeSearch = resEmployee.map(({
+      employee_id: employeeId,
+      first_name: firstNameRes,
+      last_name: lastNameRes,
+      title,
+      department_name: departmentNameRes,
+    }) => ({
+      name: `First name: ${firstNameRes}  Last name: ${lastNameRes}  Title: ${title}  Department: ${departmentNameRes}  Employee ID: ${employeeId}`,
+      value: employeeId,
+    }));
+    employeeSearch.push({
+      name: 'Go back',
+      value: -1,
+    });
+
+    await inquirer.prompt([{
+      name: 'selEmployeeId',
+      type: 'list',
+      message: 'Which of this Employee\'s is the one you\'d wish to edit',
+      choices: employeeSearch,
+
+    }]).then(async ({ selEmployeeId }) => {
+      if (selEmployeeId === -1) {
+        return runInquirer();
+      }
+
+      selectedEmployeeId = selEmployeeId;
+
+      // Finding employee's Manager
+      const sqlM = 'SELECT employee.employee_id, employee.manager_id, employee.first_name, employee.last_name, role.title, department.department_name FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id);';
+      const resEmployeeM = await new CRUD(null, null, sqlM, true).read();
+
+      for (let i = 0; i < resEmployeeM.length; i += 1) {
+        if (resEmployeeM[i].employee_id === selEmployeeId) {
+          const managerId = resEmployeeM[i].manager_id;
+          console.log('employees manager id: ', managerId);
+          employeesManager = {
+            id: managerId,
+          };
+          break;
+        }
+      }
+      for (let i = 0; i < resEmployeeM.length; i += 1) {
+        if (resEmployeeM[i].employee_id === employeesManager.id) {
+          employeesManager = {
+            firstName: resEmployeeM[i].first_name,
+            lastName: resEmployeeM[i].last_name,
+            department: resEmployeeM[i].department_name,
+            title: resEmployeeM[i].title,
+          };
+          break;
+        }
+      }
+      console.log('employees manager info: ', employeesManager);
+      const sqlManagers = 'SELECT employee.employee_id, employee.first_name, employee.last_name, role.title, department.department_name FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id) WHERE employee.manager_id IS NULL;';
+      const managersRes = await new CRUD(null, null, sqlManagers, true).read();
+
+      const managersOptions = managersRes.map(({
+        employee_id: managerId,
+        first_name: firstManName,
+        last_name: lastManName,
+        title,
+        department_name: departmentName,
+      }) => ({
+        name: `Name: ${firstManName} ${lastManName}  Title: ${title}  Department: ${departmentName} `,
+        value: managerId,
+      }));
+
+      await inquirer.prompt([{
+        name: 'managerSelection',
+        type: 'list',
+        message: `Please select new Manager, Current Manager is: Name: ${employeesManager.firstName} ${employeesManager.lastName}, Department: ${employeesManager.department}, Title: ${employeesManager.title}`,
+        choices: managersOptions,
+      }]).then(async ({ managerSelection }) => {
+        const mgrSqlUpdate = `UPDATE employee SET manager_id = ${managerSelection} WHERE employee_id = ${selectedEmployeeId}`;
+
+        const resManagerUpdate = await new CRUD(null, null, mgrSqlUpdate, true).update();
+        if (resManagerUpdate.serverStatus === 2) {
+          console.log('Operation Succesfull');
+        } else {
+          console.log('There was an error!');
+        }
+        setTimeout((() => runInquirer()), 1000);
+      });
+      return 'hello';
+    });
+  });
+};
 
 const runInquirer = () => {
   inquirer
@@ -406,201 +512,3 @@ const start = () => {
   runInquirer();
 };
 start();
-
-const updateEmployeeManager = async () => {
-  let selectedEmployeeId;
-  let employeesManager = {
-    id: Number, firstName: String, lastName: String, department: String, title: String,
-  };
-
-  await inquirer.prompt([{
-    name: 'firstName',
-    type: 'input',
-    message: 'What is the employee\'s first name?',
-  }, {
-    name: 'lastName',
-    type: 'input',
-    message: 'What is the employee\'s last name?',
-  }]).then(async ({ firstName, lastName }) => {
-    const sql = `SELECT employee.employee_id, employee.manager_id, employee.first_name, employee.last_name, role.title, department.department_name FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id) WHERE (first_name, last_name) = ('${firstName}', '${lastName}');`;
-    const resEmployee = await new CRUD(null, null, sql, true).read();
-
-    const employeeSearch = resEmployee.map(({
-      employee_id: employeeId,
-      first_name: firstNameRes,
-      last_name: lastNameRes,
-      title,
-      department_name: departmentNameRes,
-    }) => ({
-      name: `First name: ${firstNameRes}  Last name: ${lastNameRes}  Title: ${title}  Department: ${departmentNameRes}  Employee ID: ${employeeId}`,
-      value: employeeId,
-    }));
-    employeeSearch.push({
-      name: 'Go back',
-      value: -1,
-    });
-
-    await inquirer.prompt([{
-      name: 'selEmployeeId',
-      type: 'list',
-      message: 'Which of this Employee\'s is the one you\'d wish to edit',
-      choices: employeeSearch,
-
-    }]).then(async ({ selEmployeeId }) => {
-      // const table = 'employee';
-      // const columns = 'employee_id';
-      // const data = selEmployeeId;
-      if (selEmployeeId === -1) {
-        return runInquirer();
-      }
-
-      selectedEmployeeId = selEmployeeId;
-
-      // Finding employee's Manager
-      const sqlM = 'SELECT employee.employee_id, employee.manager_id, employee.first_name, employee.last_name, role.title, department.department_name FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id);';
-      const resEmployeeM = await new CRUD(null, null, sqlM, true).read();
-
-      for (let i = 0; i < resEmployeeM.length; i += 1) {
-        if (resEmployeeM[i].employee_id === selEmployeeId) {
-          const managerId = resEmployeeM[i].manager_id;
-          console.log('employees manager id: ', managerId);
-          employeesManager = {
-            id: managerId,
-          };
-          break;
-        }
-      }
-      for (let i = 0; i < resEmployeeM.length; i += 1) {
-        if (resEmployeeM[i].employee_id === employeesManager.id) {
-          employeesManager = {
-            firstName: resEmployeeM[i].first_name,
-            lastName: resEmployeeM[i].last_name,
-            department: resEmployeeM[i].department_name,
-            title: resEmployeeM[i].title,
-          };
-          break;
-        }
-      }
-      console.log('employees manager info: ', employeesManager);
-      const sqlManagers = 'SELECT employee.employee_id, employee.first_name, employee.last_name, role.title, department.department_name FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id) WHERE employee.manager_id IS NULL;';
-      const managersRes = await new CRUD(null, null, sqlManagers, true).read();
-
-      const managersOptions = managersRes.map(({
-        employee_id: managerId,
-        first_name: firstManName,
-        last_name: lastManName,
-        title,
-        department_name: departmentName,
-      }) => ({
-        name: `Name: ${firstManName} ${lastManName}  Title: ${title}  Department: ${departmentName} `,
-        value: managerId,
-      }));
-
-      await inquirer.prompt([{
-        name: 'managerSelection',
-        type: 'list',
-        message: `Please select new Manager, Current Manager is: Name: ${employeesManager.firstName} ${employeesManager.lastName}, Department: ${employeesManager.department}, Title: ${employeesManager.title}`,
-        choices: managersOptions,
-      }]).then(async ({ managerSelection }) => {
-        // const table = 'employee';
-        // const itemsToEdit = `manager_id = ${managerSelection}`;
-        // const condition = `employee_id = ${selectedEmployeeId}`;
-
-        const mgrSqlUpdate = `UPDATE employee SET manager_id = ${managerSelection} WHERE employee_id = ${selectedEmployeeId}`;
-
-        // console.log(table, itemsToEdit, condition);
-        const resManagerUpdate = await new CRUD(null, null, mgrSqlUpdate, true).update();
-        if (resManagerUpdate.serverStatus === 2) {
-          console.log('Operation Succesfull');
-        } else {
-          console.log('There was an error!');
-        }
-        setTimeout((() => runInquirer()), 1000);
-      });
-      return 'hello';
-    });
-  });
-};
-
-
-
-
-
-
-    // const sql = `SELECT employee.employee_id, employee.first_name, employee.last_name, role.title, department.department_name FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id) WHERE employee.manager_id IS NULL;`
-    // var managers = await new CRUD(null, null, sql, true).read();
-
-    // var managersChoices = managers.map(({
-    //     employee_id,
-    //     first_name,
-    //     last_name,
-    //     title,
-    //     department_name
-    // }) => ({
-    //     name: `Name: ${first_name} ${last_name}  Title: ${title}  Department: ${department_name}`,
-    //     value: employee_id
-    // }));
-
-    // var roleRes = await new CRUD('role', '*', null).read();
-    // var roleChoices = roleRes.map(({
-    //     role_id,
-    //     title
-    // }) => ({
-    //     name: title,
-    //     value: role_id
-    // }));
-
-    // inquirer.prompt([{
-    //     name: 'first_name',
-    //     type: 'input',
-    //     message: 'What is the Employee\'s First Name?'
-    // }, {
-    //     name: 'last_name',
-    //     type: 'input',
-    //     message: 'What is the Employee\'s Last Name?'
-    // }, {
-    //     name: 'role_id',
-    //     type: 'list',
-    //     message: 'Which of this roles does the employee have?',
-    //     choices: roleChoices
-    // }, {
-    //     name: 'is_manager',
-    //     type: 'confirm',
-    //     message: 'Is this Employee a Manager?'
-
-    // }]).then(async function ({
-    //     first_name,
-    //     last_name,
-    //     role_id,
-    //     is_manager
-    // }) {
-
-    //     var table = 'employee';
-    //     var columns = ['first_name', 'last_name', 'role_id'];
-    //     var data = [first_name, last_name, role_id];
-
-    //     if (is_manager === false) {
-    //         await inquirer.prompt({
-    //             name: 'who_is_manager',
-    //             type: 'list',
-    //             message: 'Who is your manager?',
-    //             choices: managersChoices
-    //         }).then(async function ({
-    //             who_is_manager
-    //         }) {
-    //             columns = ['first_name', 'last_name', 'role_id', 'manager_id'];
-    //             data = [first_name, last_name, role_id, who_is_manager];
-    //         })
-    //     };
-
-    //     var createEmployee = await new CRUD(table, columns, data).create();
-
-    //     if (createEmployee.serverStatus === 2) {
-    //         console.table(`Employee ${first_name} ${last_name} Was updated with the ID: ${createEmployee.insertId}`);
-    //     }
-
-    //     setTimeout((function () {
-    //         runInquirer();
-    //     }), 1000);
-    // })
-
