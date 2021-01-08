@@ -420,6 +420,105 @@ const updateEmployeeManager = async () => {
   });
 };
 
+const updateEmployeeRole = async () => {
+  let selectedEmployeeId;
+  let employeeRole = String;
+
+  await inquirer.prompt([{
+    name: 'firstName',
+    type: 'input',
+    message: 'What is the employee\'s first name?',
+  }, {
+    name: 'lastName',
+    type: 'input',
+    message: 'What is the employee\'s last name?',
+  }]).then(async ({ firstName, lastName }) => {
+    const sql = `SELECT employee.employee_id, employee.manager_id, employee.first_name, employee.last_name, role.title, department.department_name FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id) WHERE (first_name, last_name) = ('${firstName}', '${lastName}');`;
+    const resEmployee = await new CRUD(null, null, sql, true).read();
+
+    const employeeSearch = resEmployee.map(({
+      employee_id: employeeId,
+      first_name: firstNameRes,
+      last_name: lastNameRes,
+      title,
+      department_name: departmentNameRes,
+    }) => ({
+      name: `First name: ${firstNameRes}  Last name: ${lastNameRes}  Title: ${title}  Department: ${departmentNameRes}  Employee ID: ${employeeId}`,
+      value: employeeId,
+    }));
+    employeeSearch.push({
+      name: 'Go back',
+      value: -1,
+    });
+
+    await inquirer.prompt([{
+      name: 'selEmployeeId',
+      type: 'list',
+      message: 'Which of this Employee\'s is the one you\'d wish to edit',
+      choices: employeeSearch,
+
+    }]).then(async ({ selEmployeeId }) => {
+      if (selEmployeeId === -1) {
+        return runInquirer();
+      }
+
+      selectedEmployeeId = selEmployeeId;
+
+      // Finding employee's Role
+      // const sqlM = 'SELECT employee.employee_id, employee.manager_id, employee.first_name, employee.last_name, role.title, department.department_name FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id);';
+      // const resEmployeeM = await new CRUD(null, null, sqlM, true).read();
+
+      for (let i = 0; i < resEmployee.length; i += 1) {
+        if (resEmployee[i].employee_id === selEmployeeId) {
+          employeeRole = resEmployee[i].title;
+          break;
+        }
+      }
+      // for (let i = 0; i < resEmployeeM.length; i += 1) {
+      //   if (resEmployeeM[i].employee_id === employeesManager.id) {
+      //     employeesManager = {
+      //       firstName: resEmployeeM[i].first_name,
+      //       lastName: resEmployeeM[i].last_name,
+      //       department: resEmployeeM[i].department_name,
+      //       title: resEmployeeM[i].title,
+      //     };
+      //     break;
+      //   }
+      // }
+
+      const sqlRoles = 'SELECT role.title, role.role_id, department.department_name FROM (role INNER JOIN department ON role.department_id = department.department_id);';
+      const rolesRes = await new CRUD(null, null, sqlRoles, true).read();
+
+      const roleOptions = rolesRes.map(({
+        role_id: roleId,
+        title,
+        department_name: departmentName,
+      }) => ({
+        name: `Role: ${title}  Department: ${departmentName} `,
+        value: roleId,
+      }));
+
+      await inquirer.prompt([{
+        name: 'roleSelection',
+        type: 'list',
+        message: `Please select new Role, Current Role is: ${employeeRole}`,
+        choices: roleOptions,
+      }]).then(async ({ roleSelection }) => {
+        const mgrSqlUpdate = `UPDATE employee SET role_id = ${roleSelection} WHERE employee_id = ${selectedEmployeeId}`;
+
+        const resManagerUpdate = await new CRUD(null, null, mgrSqlUpdate, true).update();
+        if (resManagerUpdate.serverStatus === 2) {
+          console.log('Operation Succesfull');
+        } else {
+          console.log('There was an error!');
+        }
+        setTimeout((() => runInquirer()), 1000);
+      });
+      return 'hello';
+    });
+  });
+};
+
 const runInquirer = () => {
   inquirer
     .prompt({
@@ -433,7 +532,7 @@ const runInquirer = () => {
         'Remove Department',
         'Remove Role',
         'Remove Employee',
-        // 'Update Employee Role',
+        'Update Employee Role',
         'Update Employee Manager',
         'View All Departments',
         'View All Roles',
@@ -469,9 +568,9 @@ const runInquirer = () => {
           removeEmployee();
           break;
 
-        // case 'Update Employee Role':
-        //   updateEmployeeRole();
-        //   break;
+        case 'Update Employee Role':
+          updateEmployeeRole();
+          break;
 
         case 'Update Employee Manager':
           updateEmployeeManager();
