@@ -184,13 +184,10 @@ const viewAllEmployeesByManager = async () => {
       title: employee.title,
       department_name: employee.department_name,
       salary: employee.salary,
-      // manager_id: employee.manager_id,
     };
     if (employee.manager_id !== null) {
       for (let i = 0; i < managersRes.length; i += 1) {
-        console.log('loop ', managersRes[i], 'manager Number: ', managersRes[i].employee_id, 'employee.manager_id: ', employee.manager_id);
         if (employee.manager_id === managersRes[i].employee_id) {
-          console.log('employee manager Number: ', managersRes[i].employee_id);
           formattedEmployee.manager = `${managersRes[i].first_name} ${managersRes[i].last_name}`;
         }
       }
@@ -211,7 +208,6 @@ const viewAllEmployeesByManager = async () => {
     return 0;
   });
 
-  console.table(resAllEmployees);
   console.table(managerAdded);
   setTimeout((() => runInquirer()), 1000);
 };
