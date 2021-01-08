@@ -464,27 +464,12 @@ const updateEmployeeRole = async () => {
 
       selectedEmployeeId = selEmployeeId;
 
-      // Finding employee's Role
-      // const sqlM = 'SELECT employee.employee_id, employee.manager_id, employee.first_name, employee.last_name, role.title, department.department_name FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id);';
-      // const resEmployeeM = await new CRUD(null, null, sqlM, true).read();
-
       for (let i = 0; i < resEmployee.length; i += 1) {
         if (resEmployee[i].employee_id === selEmployeeId) {
           employeeRole = resEmployee[i].title;
           break;
         }
       }
-      // for (let i = 0; i < resEmployeeM.length; i += 1) {
-      //   if (resEmployeeM[i].employee_id === employeesManager.id) {
-      //     employeesManager = {
-      //       firstName: resEmployeeM[i].first_name,
-      //       lastName: resEmployeeM[i].last_name,
-      //       department: resEmployeeM[i].department_name,
-      //       title: resEmployeeM[i].title,
-      //     };
-      //     break;
-      //   }
-      // }
 
       const sqlRoles = 'SELECT role.title, role.role_id, department.department_name FROM (role INNER JOIN department ON role.department_id = department.department_id);';
       const rolesRes = await new CRUD(null, null, sqlRoles, true).read();
