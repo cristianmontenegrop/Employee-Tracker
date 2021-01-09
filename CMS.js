@@ -212,6 +212,51 @@ const viewAllEmployeesByManager = async () => {
   setTimeout((() => runInquirer()), 1000);
 };
 
+const viewTotalBudgetPerDepartment = async () => {
+  const resDepartments = await new CRUD('department', '*', null).read();
+  const roleSql = 'SELECT role.role_id, role.department_id, role.title, role.salary, department.department_name FROM department INNER JOIN role ON department.department_id = role.department_id';
+  const resRoles = await new CRUD(null, null, roleSql, true).read();
+  const departmentBudget = [];
+
+  // Pushing department Objects to Array
+  for (let i = 0; i < resDepartments.length; i += 1) {
+    departmentBudget.push({
+      name: resDepartments[i].department_name,
+      monthly_budget: 0,
+      yearly_budget: 0,
+    });
+  }
+
+  // Pushing
+  // console.log('departmentBudeget: ', departmentBudget);
+  for (let i = 0; i < resRoles.length; i += 1) {
+    // if (resRoles[i].department_name){}
+
+    const result = departmentBudget.filter((obj) => obj.name === resRoles[i].department_name);
+
+    result[0].monthly_budget += resRoles[i].salary;
+    // console.log(resRoles[i].department_name);
+    // console.log(result);
+
+    // if (resRoles[i].department_name === resRoles[i + 1].department_name) {
+    //   departmentBudget =
+    // }
+  }
+  for (let i = 0; i < departmentBudget.length; i += 1) {
+    departmentBudget[i].yearly_budget = departmentBudget[i].monthly_budget * 12;
+    departmentBudget[i].monthly_budget = (departmentBudget[i].monthly_budget).toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+    departmentBudget[i].yearly_budget = (departmentBudget[i].yearly_budget).toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+
+    // const sign = '$'
+    // const cents = '.00'
+    departmentBudget[i].monthly_budget = '$'.concat(departmentBudget[i].monthly_budget, '.00');
+    departmentBudget[i].yearly_budget = '$'.concat(departmentBudget[i].yearly_budget, '.00');
+  }
+
+  console.table(departmentBudget);
+  setTimeout((() => runInquirer()), 1000);
+};
+
 const removeDepartment = async () => {
   const resDepartment = await new CRUD('department', '*', null).read();
   const departmentChoices = resDepartment.map(({
@@ -566,7 +611,7 @@ const runInquirer = () => {
         'View All Roles',
         'View All Employees',
         'View All Employees by Manager',
-        // 'View Total Utilized Budget per Department',
+        'View Total Utilized Budget per Department',
         'I\'m done',
       ],
     })
@@ -615,13 +660,13 @@ const runInquirer = () => {
           viewAllEmployees();
           break;
 
-          case 'View All Employees by Manager':
-              viewAllEmployeesByManager();
-              break;
+        case 'View All Employees by Manager':
+          viewAllEmployeesByManager();
+          break;
 
-          // case 'View Total Utilized Budget per Department':
-          //     viewTotalBudgetPerDepartment();
-          //     break;
+        case 'View Total Utilized Budget per Department':
+          viewTotalBudgetPerDepartment();
+          break;
         case 'I\'m done':
           await new CRUD().end();
           return;
