@@ -227,28 +227,19 @@ const viewTotalBudgetPerDepartment = async () => {
     });
   }
 
-  // Pushing
-  // console.log('departmentBudeget: ', departmentBudget);
+  // Pushing individual salaries into corresponding departments
   for (let i = 0; i < resRoles.length; i += 1) {
-    // if (resRoles[i].department_name){}
-
     const result = departmentBudget.filter((obj) => obj.name === resRoles[i].department_name);
 
     result[0].monthly_budget += resRoles[i].salary;
-    // console.log(resRoles[i].department_name);
-    // console.log(result);
-
-    // if (resRoles[i].department_name === resRoles[i + 1].department_name) {
-    //   departmentBudget =
-    // }
   }
+
+  // Parsing Integer into string with corresponding currency notation
   for (let i = 0; i < departmentBudget.length; i += 1) {
     departmentBudget[i].yearly_budget = departmentBudget[i].monthly_budget * 12;
     departmentBudget[i].monthly_budget = (departmentBudget[i].monthly_budget).toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
     departmentBudget[i].yearly_budget = (departmentBudget[i].yearly_budget).toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
 
-    // const sign = '$'
-    // const cents = '.00'
     departmentBudget[i].monthly_budget = '$'.concat(departmentBudget[i].monthly_budget, '.00');
     departmentBudget[i].yearly_budget = '$'.concat(departmentBudget[i].yearly_budget, '.00');
   }
