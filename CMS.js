@@ -178,6 +178,7 @@ const viewAllEmployeesByManager = async () => {
 
   const managerAdded = resAllEmployees.map((employee) => {
     let formattedEmployee = Object;
+
     formattedEmployee = {
       name: `${employee.first_name}  ${employee.last_name}`,
       manager: 'No manager assigned',
@@ -185,15 +186,18 @@ const viewAllEmployeesByManager = async () => {
       department_name: employee.department_name,
       salary: employee.salary,
     };
+
     if (employee.manager_id !== null) {
-      for (let i = 0; i < managersRes.length; i += 1) {
-        if (employee.manager_id === managersRes[i].employee_id) {
-          formattedEmployee.manager = `${managersRes[i].first_name} ${managersRes[i].last_name}`;
+      managersRes.forEach((item) => {
+        if (employee.manager_id === item.employee_id) {
+          formattedEmployee.manager = `${item.first_name} ${item.last_name}`;
         }
-      }
+      });
     }
+
     return formattedEmployee;
   });
+
   managerAdded.sort((a, b) => {
     const nameA = a.manager.toUpperCase();
     const nameB = b.manager.toUpperCase();
@@ -220,14 +224,6 @@ const viewTotalBudgetPerDepartment = async () => {
 
   // Pushing department Objects to Array
 
-  // for (let i = 0; i < resDepartments.length; i += 1) {
-  //   departmentBudget.push({
-  //     name: resDepartments[i].department_name,
-  //     monthly_budget: 0,
-  //     yearly_budget: 0,
-  //   });
-  // }
-
   resDepartments.forEach((item) => {
     departmentBudget.push({
       name: item.department_name,
@@ -237,12 +233,6 @@ const viewTotalBudgetPerDepartment = async () => {
   });
 
   // Pushing individual salaries into corresponding departments
-
-  // for (let i = 0; i < resRoles.length; i += 1) {
-  //   const result = departmentBudget.filter((obj) => obj.name === resRoles[i].department_name);
-
-  //   result[0].monthly_budget += resRoles[i].salary;
-  // }
 
   resRoles.forEach((item) => {
     const result = departmentBudget.filter((obj) => obj.name === item.department_name);
@@ -264,12 +254,6 @@ const viewTotalBudgetPerDepartment = async () => {
       yearly_budget: yearlyBudget,
       monthly_budget: monthlyBudget,
     };
-    // item.yearly_budget = item.monthly_budget * 12;
-    // item.monthly_budget = (item.monthly_budget).toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
-    // item.yearly_budget = (item.yearly_budget).toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
-
-    // item.monthly_budget = '$'.concat(item.monthly_budget, '.00');
-    // item.yearly_budget = '$'.concat(item.yearly_budget, '.00');
   });
 
   console.table(departmentBudget);
