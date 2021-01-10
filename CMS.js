@@ -216,33 +216,61 @@ const viewTotalBudgetPerDepartment = async () => {
   const resDepartments = await new CRUD('department', '*', null).read();
   const roleSql = 'SELECT role.role_id, role.department_id, role.title, role.salary, department.department_name FROM department INNER JOIN role ON department.department_id = role.department_id';
   const resRoles = await new CRUD(null, null, roleSql, true).read();
-  const departmentBudget = [];
+  let departmentBudget = [];
 
   // Pushing department Objects to Array
-  for (let i = 0; i < resDepartments.length; i += 1) {
+
+  // for (let i = 0; i < resDepartments.length; i += 1) {
+  //   departmentBudget.push({
+  //     name: resDepartments[i].department_name,
+  //     monthly_budget: 0,
+  //     yearly_budget: 0,
+  //   });
+  // }
+
+  resDepartments.forEach((item) => {
     departmentBudget.push({
-      name: resDepartments[i].department_name,
+      name: item.department_name,
       monthly_budget: 0,
       yearly_budget: 0,
     });
-  }
+  });
 
   // Pushing individual salaries into corresponding departments
-  for (let i = 0; i < resRoles.length; i += 1) {
-    const result = departmentBudget.filter((obj) => obj.name === resRoles[i].department_name);
 
-    result[0].monthly_budget += resRoles[i].salary;
-  }
+  // for (let i = 0; i < resRoles.length; i += 1) {
+  //   const result = departmentBudget.filter((obj) => obj.name === resRoles[i].department_name);
+
+  //   result[0].monthly_budget += resRoles[i].salary;
+  // }
+
+  resRoles.forEach((item) => {
+    const result = departmentBudget.filter((obj) => obj.name === item.department_name);
+    result[0].monthly_budget += item.salary;
+  });
 
   // Parsing Integer into string with corresponding currency notation
-  for (let i = 0; i < departmentBudget.length; i += 1) {
-    departmentBudget[i].yearly_budget = departmentBudget[i].monthly_budget * 12;
-    departmentBudget[i].monthly_budget = (departmentBudget[i].monthly_budget).toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
-    departmentBudget[i].yearly_budget = (departmentBudget[i].yearly_budget).toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
 
-    departmentBudget[i].monthly_budget = '$'.concat(departmentBudget[i].monthly_budget, '.00');
-    departmentBudget[i].yearly_budget = '$'.concat(departmentBudget[i].yearly_budget, '.00');
-  }
+  departmentBudget = departmentBudget.map((item) => {
+    let yearlyBudget = item.monthly_budget * 12;
+    yearlyBudget = (yearlyBudget).toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+    yearlyBudget = '$'.concat(yearlyBudget, '.00');
+
+    let monthlyBudget = (item.monthly_budget).toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+    monthlyBudget = '$'.concat(item.monthly_budget, '.00');
+
+    return {
+      name: item.name,
+      yearly_budget: yearlyBudget,
+      monthly_budget: monthlyBudget,
+    };
+    // item.yearly_budget = item.monthly_budget * 12;
+    // item.monthly_budget = (item.monthly_budget).toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+    // item.yearly_budget = (item.yearly_budget).toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+
+    // item.monthly_budget = '$'.concat(item.monthly_budget, '.00');
+    // item.yearly_budget = '$'.concat(item.yearly_budget, '.00');
+  });
 
   console.table(departmentBudget);
   setTimeout((() => runInquirer()), 1000);
