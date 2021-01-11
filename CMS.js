@@ -304,6 +304,7 @@ const removeDepartment = async () => {
 
 const removeEmployee = async () => {
   let search = [];
+
   inquirer.prompt([{
     name: 'firstName',
     type: 'input',
@@ -318,7 +319,7 @@ const removeEmployee = async () => {
   }) => {
     const sql = `SELECT employee.employee_id, employee.first_name, employee.last_name, role.title, department.department_name FROM ((role INNER JOIN employee ON employee.role_id = role.role_id) INNER JOIN department ON role.department_id = department.department_id) WHERE (first_name, last_name) = ('${firstName}', '${lastName}');`;
     const resEmployee = await new CRUD(null, null, sql, true).read();
-    // console.log(res);
+
     search = resEmployee.map(({
       employee_id: employeeId,
       first_name: firstNameSearch,
@@ -329,6 +330,7 @@ const removeEmployee = async () => {
       name: `First name: ${firstNameSearch}  Last name: ${lastNameSearch}  Title: ${title}  Department: ${departmentName}  Employee ID: ${employeeId}`,
       value: employeeId,
     }));
+
     search.push({
       name: 'Go back',
       value: -1,
@@ -350,6 +352,7 @@ const removeEmployee = async () => {
         console.table('There was an error, please try again or use a different result');
         return removeEmployee();
       }
+
       const resDelete = await new CRUD(table, columns, data).delete();
       if (resDelete.serverStatus === 2) {
         message = null;
@@ -360,6 +363,7 @@ const removeEmployee = async () => {
         });
         console.table(`Employee ${message} Was removed succesfully`);
       }
+
       setTimeout((() => runInquirer()), 1000);
       return resDelete;
     });
