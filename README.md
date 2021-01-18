@@ -26,7 +26,13 @@ This tool is known as Content Management System, it is a solution for managing a
 
 ## Technologies
 
-<ul><li>This tool is known as Content Management System</li><li> it is a solution for managing a company's employees</li><li> it uses a database to store the information. Simply add your departments</li><li> employee roles</li><li> employees</li><li> salaries and this tool will take care of keeping your data organized and accessible. </li></ul>
+<ul>
+<li>MySQL</li>
+<li>Node.js</li>
+<li>JavaScript</li>
+<li>npm</li>
+<li>Inquirer.js</li>
+</ul>
               
 ## Installation 
  To install necessary dependencies, run the following command: ' To install necessary dependencies, run the following command: ' To install necessary dependencies, run the following command: 'To install dependencies type 'npm i' in terminal' '    '                   
